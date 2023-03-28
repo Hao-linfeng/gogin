@@ -1,2 +1,2 @@
 # gogin
-gogin
+第一天
