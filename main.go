@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"gogin/router"
+)
 
 func main() {
-	fmt.Println("hello")
+	r := router.Router()
+	r.Run(":8000")
 }
