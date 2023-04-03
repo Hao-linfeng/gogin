@@ -1,6 +1,10 @@
 package models
 
 import (
+	"fmt"
+	"gogin/utils"
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -13,13 +17,22 @@ type UserBasic struct {
 	Identidy      string
 	ClientIp      string
 	ClientPort    string
-	LoginTime     uint64
-	HeartBeatTime uint64
-	LogOutTime    uint64
+	LoginTime     time.Time
+	HeartBeatTime time.Time
+	LoginOutTime  time.Time `gorm:"column:login_out_time" json:"logon_out_time"`
 	IsLogout      bool
 	DeviceInfo    string
 }
 
 func (table *UserBasic) TableName() string {
 	return "user_basic"
+}
+
+func GetUserList() []*UserBasic {
+	data := make([]*UserBasic, 10)
+	utils.DB.Find(&data)
+	for _, v := range data {
+		fmt.Println(v)
+	}
+	return data
 }
