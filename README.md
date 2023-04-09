@@ -1,2 +1,3 @@
 # gogin
 第一天
+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
