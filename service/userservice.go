@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"gogin/models"
+	"gogin/utils"
+	"math/rand"
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
@@ -34,11 +36,38 @@ func CreateUser(c *gin.Context) {
 	user.Name = c.Query("name")
 	password := c.Query("password")
 	repassword := c.Query("repassword")
+	salt := fmt.Sprintf("%06d", rand.Int31())
+	user.Salt = salt
 	if password != repassword {
 		c.JSON(-1, gin.H{
 			"message": "两次密码不一致",
 		})
+		return
 	}
+	n := models.FindUserByName(user.Name)
+	if n.Name != "" {
+		c.JSON(-1, gin.H{
+			"message": "用户名已经注册",
+		})
+		return
+	}
+	e := models.FindUserByEmail(user.Email)
+
+	if e.Email != "" {
+		c.JSON(-1, gin.H{
+			"message": "邮箱已经注册",
+		})
+		return
+	}
+	p := models.FindUserByPhone(user.Phone)
+	if p.Phone != "" {
+		c.JSON(-1, gin.H{
+			"message": "手机号已经注册",
+		})
+		return
+	}
+
+	user.Password = utils.MakePasswoed(password, salt)
 	models.CreateUser(&user)
 	c.JSON(200, gin.H{
 		"messahe": "新增用户成功",
@@ -89,9 +118,9 @@ func UpdateUser(c *gin.Context) {
 		})
 	} else {
 		models.UpdateUser(&user)
+		c.JSON(200, gin.H{
+			"messahe": "修改用户成功",
+		})
 	}
-	c.JSON(200, gin.H{
-		"messahe": "修改用户成功",
-	})
 
 }
