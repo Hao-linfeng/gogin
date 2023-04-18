@@ -6,13 +6,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-var DB *gorm.DB
+var (
+	DB  *gorm.DB
+	RED *redis.Client
+)
 
 func InitConfig() {
 	viper.SetConfigName("app")    //配置文件名 不带扩展格式
@@ -23,6 +27,7 @@ func InitConfig() {
 	}
 	fmt.Println("config app:", viper.Get("app"))
 	fmt.Println("config mysql:", viper.Get("mysql"))
+	fmt.Println("config mysql:", viper.Get("redis"))
 
 }
 func InitMysql() {
@@ -41,4 +46,21 @@ func InitMysql() {
 	// user := models.UserBasic{}
 	// DB.Find(user)
 	// fmt.Println(user)
+}
+
+func InitRedis() {
+	RED = redis.NewClient(&redis.Options{
+		Addr:         viper.GetString("redis.password"),
+		Password:     viper.GetString("redis.password"),
+		DB:           viper.GetInt("redis.DB"),
+		PoolSize:     viper.GetInt("redis.poolSize"),
+		MinIdleConns: viper.GetInt("redis.minIdleConn"),
+	})
+	pong, err := RED.Ping().Result()
+	if err != nil {
+		fmt.Println("config app inited.....err", err)
+	} else {
+		fmt.Println("config app inited.....sus", pong)
+	}
+
 }

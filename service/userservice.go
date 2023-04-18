@@ -23,6 +23,49 @@ func GetUserList(c *gin.Context) {
 	c.JSON(200, userList)
 }
 
+// GetUserList
+// @Summary 所有用户
+// @Tags 用户模块
+// @param name query string false "用户名"
+// @param password query string false "密码"
+// @Accept json
+// @Produce json
+// @Success 200 {string} json{"code", "message"}
+// @Router /user/findUserByNameAndPwd [post]
+func FindUserByNameAndPwd(c *gin.Context) {
+	data := models.UserBasic{}
+	name := c.Query("name")
+	password := c.Query("password")
+	user := models.FindUserByName(name)
+	if user.Name == "" {
+		c.JSON(200, gin.H{
+			"code":    -1,
+			"message": "该用户不存在",
+			"data":    data,
+		})
+		return
+
+	}
+	flag := utils.ValidPasswoed(password, user.Password, user.Salt)
+	if !flag {
+		c.JSON(200, gin.H{
+			"code":    -1,
+			"message": "密码或者用户名不正确",
+			"data":    data,
+		})
+		return
+	}
+
+	pwd := utils.MakePasswoed(password, user.Salt)
+	models.FindUserByNameAndPwd(name, pwd)
+
+	c.JSON(200, gin.H{
+		"code":    0,
+		"message": "登录成功",
+		"data":    data,
+	})
+}
+
 // GetUser
 // @Summary 新增用户
 // @Tags 用户模块
@@ -40,6 +83,7 @@ func CreateUser(c *gin.Context) {
 	user.Salt = salt
 	if password != repassword {
 		c.JSON(-1, gin.H{
+			"code":    -1,
 			"message": "两次密码不一致",
 		})
 		return
@@ -47,6 +91,7 @@ func CreateUser(c *gin.Context) {
 	n := models.FindUserByName(user.Name)
 	if n.Name != "" {
 		c.JSON(-1, gin.H{
+			"code":    -1,
 			"message": "用户名已经注册",
 		})
 		return
@@ -55,6 +100,7 @@ func CreateUser(c *gin.Context) {
 
 	if e.Email != "" {
 		c.JSON(-1, gin.H{
+			"code":    -1,
 			"message": "邮箱已经注册",
 		})
 		return
@@ -62,6 +108,7 @@ func CreateUser(c *gin.Context) {
 	p := models.FindUserByPhone(user.Phone)
 	if p.Phone != "" {
 		c.JSON(-1, gin.H{
+			"code":    -1,
 			"message": "手机号已经注册",
 		})
 		return
@@ -70,7 +117,9 @@ func CreateUser(c *gin.Context) {
 	user.Password = utils.MakePasswoed(password, salt)
 	models.CreateUser(&user)
 	c.JSON(200, gin.H{
+		"code":    0,
 		"messahe": "新增用户成功",
+		"data":    user,
 	})
 
 }
@@ -87,7 +136,9 @@ func DeleteUser(c *gin.Context) {
 	user.ID = uint(id)
 	models.DeleteUser(&user)
 	c.JSON(200, gin.H{
+		"code":    0,
 		"messahe": "删除用户成功",
+		"data":    user,
 	})
 
 }
@@ -114,12 +165,16 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(200, gin.H{
+			"code":    -1,
 			"messahe": "修改参数有误",
+			"data":    user,
 		})
 	} else {
 		models.UpdateUser(&user)
 		c.JSON(200, gin.H{
+			"code":    0,
 			"messahe": "修改用户成功",
+			"data":    user,
 		})
 	}
 
