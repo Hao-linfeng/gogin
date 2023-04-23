@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -56,11 +57,33 @@ func InitRedis() {
 		PoolSize:     viper.GetInt("redis.poolSize"),
 		MinIdleConns: viper.GetInt("redis.minIdleConn"),
 	})
-	pong, err := RED.Ping().Result()
-	if err != nil {
-		fmt.Println("config app inited.....err", err)
-	} else {
-		fmt.Println("config app inited.....sus", pong)
-	}
 
+}
+
+const (
+	PublishKey = "websocket"
+)
+
+// 发布消息
+func Publish(ctx context.Context, channel string, msg string) error {
+	var err error
+	fmt.Println("publish .....", msg)
+	err = RED.Publish(ctx, channel, msg).Err()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err
+}
+
+// 订阅消息
+func Subscribe(ctx context.Context, channel string) (string, error) {
+	sub := RED.Subscribe(ctx, channel)
+	fmt.Println("Subscribe........", ctx)
+	msg, err := sub.ReceiveMessage(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	fmt.Println("PSubscribe .....", msg.Payload)
+	return msg.Payload, err
 }
