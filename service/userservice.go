@@ -208,11 +208,11 @@ func SendMsg(c *gin.Context) {
 }
 
 func MsgHandler(ws *websocket.Conn, c *gin.Context) {
+	msg, err := utils.Subscribe(c, utils.PublishKey)
+	if err != nil {
+		fmt.Println(err)
+	}
 	for {
-		msg, err := utils.Subscribe(c, utils.PublishKey)
-		if err != nil {
-			fmt.Println(err)
-		}
 		tm := time.Now().Format("2006-01-02 15:04:05")
 		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
 		err = ws.WriteMessage(1, []byte(m))
