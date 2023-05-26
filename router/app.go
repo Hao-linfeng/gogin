@@ -26,8 +26,10 @@ func Router() *gin.Engine {
 	r.POST("/user/UpdateUser", service.UpdateUser)
 	r.POST("/user/findUserByNameAndPwd", service.FindUserByNameAndPwd)
 
-	//发送消息
+	//发送消息 ws://192.168.31.201:8000/user/SendMsg
 	r.GET("/user/SendMsg", service.SendMsg)
+	// ws://192.168.31.201:8000/user/sendUserMsg
+	r.GET("/user/sendUserMsg", service.SendUserMsg)
 
 	return r
 }
